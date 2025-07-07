@@ -1,8 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- インターネット接続の権限を追加 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    
     <application
         android:label="myapp"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
+        <!-- usesCleartextTraffic="true" を追加してHTTP通信を許可 -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
