@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -134,6 +136,20 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
 
   // --- API連携のメソッド ---
 
+  // プラットフォームに応じたAPIエンドポイントを取得
+  String get apiBaseUrl {
+    if (kIsWeb) {
+      // Web版の場合
+      return 'http://localhost:5000';
+    } else if (Platform.isAndroid) {
+      // Androidエミュレーターの場合は10.0.2.2を使用
+      return 'http://10.0.2.2:5000';
+    } else {
+      // iOS, Windows, macOS, Linux の場合
+      return 'http://localhost:5000';
+    }
+  }
+
   // ゲームオーバー判定APIを呼び出す
   Future<void> _checkGameOver() async {
     if (knightPosition == null) {
@@ -141,12 +157,18 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
       return;
     }
 
+    // 処理時間の警告を表示
+    _showGameResultDialog(
+      "処理開始",
+      "ナイト・ツアーの解析を開始します。\n\n複雑な盤面の場合、数分かかる場合があります。\nしばらくお待ちください...",
+    );
+
     setState(() {
       isLoading = true;
     });
 
-    // ローカルFlaskサーバーのAPIエンドポイント
-    const String apiUrl = 'http://localhost:5000/check_knight_tour';
+    // プラットフォームに応じたAPIエンドポイント
+    final String apiUrl = '$apiBaseUrl/check_knight_tour';
 
     // APIに送信するデータを作成
     final requestBody = jsonEncode({
@@ -159,6 +181,11 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
     });
 
     try {
+      // デバッグ情報を表示
+      debugPrint('接続先API URL: $apiUrl');
+      debugPrint('リクエストボディ: $requestBody');
+      debugPrint('API呼び出し開始: ${DateTime.now()}');
+
       // APIにPOSTリクエストを送信
       final response = await http
           .post(
@@ -166,7 +193,11 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
             headers: {'Content-Type': 'application/json'},
             body: requestBody,
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(minutes: 10)); // タイムアウトを10分に延長
+
+      debugPrint('API呼び出し完了: ${DateTime.now()}');
+      debugPrint('レスポンスステータス: ${response.statusCode}');
+      debugPrint('レスポンスボディ: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
@@ -178,16 +209,59 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
         }
       } else {
         // サーバーからのエラーレスポンス
+        debugPrint('APIエラー詳細: ${response.body}');
         _showGameResultDialog(
           "APIエラー",
-          "サーバーからエラーが返されました (コード: ${response.statusCode})",
+          "サーバーからエラーが返されました (コード: ${response.statusCode})\n詳細: ${response.body}",
         );
       }
     } catch (e) {
       // タイムアウトやネットワークエラー
+      debugPrint('API通信エラー: $e');
       _showGameResultDialog(
         "通信エラー",
-        "APIに接続できませんでした。ネットワーク接続を確認するか、URLが正しいか確認してください。\n\nエラー詳細: $e",
+        "APIに接続できませんでした。\n\n接続先: $apiUrl\n\nプラットフォーム: ${Platform.operatingSystem}\n\nエラー詳細: $e",
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  // シンプルなAPI接続テスト
+  Future<void> _testApiConnection() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    // ヘルスチェックエンドポイント
+    final String healthUrl = '$apiBaseUrl/health';
+
+    try {
+      debugPrint('ヘルスチェックURL: $healthUrl');
+
+      final response = await http
+          .get(Uri.parse(healthUrl))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        _showGameResultDialog(
+          "接続テスト成功",
+          "APIサーバーとの接続が確認されました。\n\nレスポンス: ${responseBody['status']}",
+        );
+      } else {
+        _showGameResultDialog(
+          "接続テストエラー",
+          "サーバーからエラーが返されました (コード: ${response.statusCode})",
+        );
+      }
+    } catch (e) {
+      debugPrint('ヘルスチェックエラー: $e');
+      _showGameResultDialog(
+        "接続テストエラー",
+        "APIサーバーに接続できませんでした。\n\n接続先: $healthUrl\n\nエラー詳細: $e",
       );
     } finally {
       setState(() {
@@ -355,22 +429,44 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
               if (isLoading)
                 const CircularProgressIndicator()
               else
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                Column(
                   children: [
-                    ElevatedButton.icon(
-                      onPressed: _resetGame,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('リセット'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _resetGame,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('リセット'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: _testApiConnection,
+                          icon: const Icon(Icons.wifi_tethering),
+                          label: const Text('接続テスト'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 10),
                     ElevatedButton.icon(
-                      onPressed: _checkGameOver,
-                      icon: const Icon(Icons.api),
-                      label: const Text('ゲームオーバーチェック'),
+                      onPressed: isLoading
+                          ? null
+                          : _checkGameOver, // ローディング中は無効化
+                      icon: isLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.api),
+                      label: Text(isLoading ? 'チェック中...' : 'ゲームオーバーチェック'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,

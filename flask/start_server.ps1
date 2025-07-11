@@ -1,31 +1,31 @@
 # PowerShell script to start the Knight Tour API server
 
-Write-Host "ナイト・ツアーAPI サーバーを起動中..." -ForegroundColor Green
+Write-Host "Knight Tour API Server Starting..." -ForegroundColor Green
 
-# Python バージョンチェック
+# Python version check
 $pythonVersion = python --version 2>&1
-Write-Host "Python バージョン: $pythonVersion" -ForegroundColor Cyan
+Write-Host "Python Version: $pythonVersion" -ForegroundColor Cyan
 
-# 仮想環境が存在するかチェック
+# Virtual environment check
 if (Test-Path "venv") {
-    Write-Host "仮想環境を有効化中..." -ForegroundColor Yellow
+    Write-Host "Activating virtual environment..." -ForegroundColor Yellow
     & "venv\Scripts\Activate.ps1"
 } else {
-    Write-Host "仮想環境を作成中..." -ForegroundColor Yellow
+    Write-Host "Creating virtual environment..." -ForegroundColor Yellow
     python -m venv venv
     & "venv\Scripts\Activate.ps1"
 }
 
-# pipとsetuptoolsをアップグレード
-Write-Host "pip、setuptools、wheelをアップグレード中..." -ForegroundColor Yellow
+# Upgrade pip and setuptools
+Write-Host "Upgrading pip, setuptools, wheel..." -ForegroundColor Yellow
 pip install --upgrade pip setuptools wheel
 
-# 依存関係のインストール
-Write-Host "依存関係をインストール中..." -ForegroundColor Yellow
+# Install dependencies
+Write-Host "Installing dependencies..." -ForegroundColor Yellow
 pip install -r requirements.txt
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "依存関係のインストールに失敗しました。個別にインストールを試行します..." -ForegroundColor Red
+    Write-Host "Failed to install dependencies. Trying individual installation..." -ForegroundColor Red
     pip install "Flask>=2.3.2"
     pip install "Flask-CORS>=4.0.0"
     pip install "numpy>=1.26.0"
@@ -33,9 +33,9 @@ if ($LASTEXITCODE -ne 0) {
     pip install "requests>=2.31.0"
 }
 
-# サーバーの起動
-Write-Host "サーバーを起動中..." -ForegroundColor Green
-Write-Host "サーバーは http://localhost:5000 で起動します" -ForegroundColor Cyan
-Write-Host "終了するには Ctrl+C を押してください" -ForegroundColor Cyan
+# Start server
+Write-Host "Starting server..." -ForegroundColor Green
+Write-Host "Server will start at http://localhost:5000" -ForegroundColor Cyan
+Write-Host "Press Ctrl+C to stop the server" -ForegroundColor Cyan
 
 python app.py

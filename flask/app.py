@@ -65,9 +65,14 @@ class KnightTourSolver:
             model = constraints + objective
             client = FixstarsClient()
             client.token = "AE/TZldOOkEItyFW5PFYBhSoDUEcx6KL0Xn"
-            client.parameters.timeout = timedelta(milliseconds=30 * 1000)
             
+            timeout_seconds = 100  # 100s
+                
+            client.parameters.timeout = timedelta(seconds=timeout_seconds)
+            
+            logger.info(f"量子アニーリング求解開始: visited_squares={len(visited_squares)}手, timeout={timeout_seconds}秒")
             result = solve(model, client)
+            logger.info(f"量子アニーリング求解完了: result.best={'有' if result.best else '無'}")
             
             if result.best is None:
                 return False
@@ -161,12 +166,34 @@ def check_knight_tour():
         
         logger.info(f"ナイト・ツアーチェック開始: board_size={board_size}, visited_squares={len(visited_squares)}手")
         
+        # 早期チェック: 移動可能なマスが存在するかを確認
+        current_x, current_y = current_position['x'], current_position['y']
+        visited_positions = set((pos['x'], pos['y']) for pos in visited_squares)
+        
+        # ナイトの8方向の移動
+        knight_moves = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]]
+        possible_moves = []
+        
+        for dx, dy in knight_moves:
+            next_x, next_y = current_x + dx, current_y + dy
+            if (0 <= next_x < board_size and 0 <= next_y < board_size and 
+                (next_x, next_y) not in visited_positions):
+                possible_moves.append((next_x, next_y))
+        
+        # 移動可能なマスがない場合は即座にunsolvableを返す
+        if not possible_moves:
+            logger.info("移動可能なマスが存在しないため、ゲームオーバー")
+            return jsonify({'status': 'unsolvable'}), 200
+        
         # 非同期でソルバーを実行
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future = executor.submit(run_solver_async, board_size, visited_squares)
             try:
-                # タイムアウトを設定（45秒）
-                is_solvable = future.result(timeout=45)
+                # 量子アニーリングのタイムアウト + バッファ時間を設定
+                executor_timeout = 100 + 30  # 量子アニーリング100秒 + バッファ30秒
+                
+                logger.info(f"実行タイムアウト設定: {executor_timeout}秒")
+                is_solvable = future.result(timeout=executor_timeout)
                 
                 status = "solvable" if is_solvable else "unsolvable"
                 logger.info(f"ナイト・ツアーチェック完了: status={status}")
