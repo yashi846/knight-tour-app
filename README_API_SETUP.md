@@ -17,7 +17,7 @@
 ### 1. Flask サーバーの起動
 ```powershell
 # PowerShellでflaskフォルダに移動
-cd C:\Flutter\flask
+cd "D:\Flutter App\knight-tour-app\flask"
 
 # 依存関係のインストール
 pip install -r requirements.txt
@@ -39,19 +39,27 @@ python test_connection.py
 
 ### 3. Flutter アプリの実行
 ```powershell
-# myappフォルダに移動
-cd C:\Flutter\myapp
+# knight-tour-appフォルダに移動
+cd "D:\Flutter App\knight-tour-app"
 
-# Flutter アプリを実行
+# Flutter アプリを実行（デバイス選択）
 flutter run
+
+# または直接Chromeで実行
+flutter run -d chrome
 ```
 
 ## 利用方法
 
 1. **Flaskサーバー起動**: `python app.py` でサーバーを起動
-2. **Flutterアプリ起動**: `flutter run` でアプリを起動
+2. **Flutterアプリ起動**: `flutter run` でアプリを起動（デバイス選択画面で Chrome を選択）
 3. **ゲームプレイ**: チェス盤にナイトを配置して移動
 4. **API呼び出し**: 「ゲームオーバーチェック」ボタンを押すとFlask APIが呼び出される
+
+### Webブラウザーでの表示について
+- ChromeやEdgeで実行する場合、アプリは画面サイズに最適化されます
+- チェス盤のサイズは画面の高さの60%に制限され、全体が見渡しやすくなります
+- ボタンやテキストのサイズもWeb表示に最適化されています
 
 ## API仕様
 

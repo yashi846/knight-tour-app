@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:google_fonts/google_fonts.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 void main() {
   runApp(const KnightTourApp());
@@ -18,8 +20,265 @@ class KnightTourApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        // フォント設定を修正
+        fontFamily: GoogleFonts.notoSansJp().fontFamily,
+        textTheme: GoogleFonts.notoSansJpTextTheme(),
       ),
-      home: const ChessBoardScreen(),
+      home: const TitleScreen(), // タイトル画面を最初に表示
+    );
+  }
+}
+
+// タイトル画面
+class TitleScreen extends StatelessWidget {
+  const TitleScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue[900]!, Colors.blue[600]!, Colors.blue[300]!],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 32.0,
+              ),
+              child: Column(
+                children: [
+                  // タイトル部分
+                  const SizedBox(height: 40),
+                  Container(
+                    padding: const EdgeInsets.all(20.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.castle,
+                          size: kIsWeb ? 60 : 80,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'ナイト ツアー',
+                          style: GoogleFonts.notoSansJp(
+                            fontSize: kIsWeb ? 36 : 42,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 2.0,
+                          ),
+                        ),
+                        Text(
+                          'Knight Tour Puzzle',
+                          style: TextStyle(
+                            fontSize: kIsWeb ? 16 : 18,
+                            color: Colors.white.withOpacity(0.8),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // 説明部分
+                  Container(
+                    padding: const EdgeInsets.all(24.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.lightbulb,
+                              color: Colors.orange[600],
+                              size: 24,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'ゲームについて',
+                              style: GoogleFonts.notoSansJp(
+                                fontSize: kIsWeb ? 18 : 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[800],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'ナイトツアーは、チェスのナイト（騎士）を使った古典的なパズルです。8×8のチェス盤で、ナイトが各マスを一度ずつ訪問し、全64マスを制覇することが目標です。',
+                          style: GoogleFonts.notoSansJp(
+                            fontSize: kIsWeb ? 14 : 16,
+                            height: 1.6,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.touch_app,
+                              color: Colors.green[600],
+                              size: 24,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '操作方法',
+                              style: GoogleFonts.notoSansJp(
+                                fontSize: kIsWeb ? 18 : 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[800],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        _buildInstructionItem('1. 任意のマスをタップしてナイトを配置'),
+                        _buildInstructionItem('2. 緑色のマスがナイトの移動可能な場所'),
+                        _buildInstructionItem('3. ナイトの移動でマスを制覇していこう'),
+                        _buildInstructionItem('4. 全64マス制覇でクリア！'),
+
+                        const SizedBox(height: 20),
+
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.psychology,
+                              color: Colors.purple[600],
+                              size: 24,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '量子アニーリング機能',
+                              style: GoogleFonts.notoSansJp(
+                                fontSize: kIsWeb ? 18 : 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[800],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '行き詰まった時は「量子アニーリングチェック」ボタンで量子コンピューターが最適解を探索し、解決可能かどうかを判定します。',
+                          style: GoogleFonts.notoSansJp(
+                            fontSize: kIsWeb ? 14 : 16,
+                            height: 1.6,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // スタートボタン
+                  SizedBox(
+                    width: double.infinity,
+                    height: kIsWeb ? 50 : 60,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ChessBoardScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange[600],
+                        foregroundColor: Colors.white,
+                        elevation: 8,
+                        shadowColor: Colors.orange.withOpacity(0.4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.play_arrow, size: 28),
+                          const SizedBox(width: 8),
+                          Text(
+                            'ゲームスタート',
+                            style: GoogleFonts.notoSansJp(
+                              fontSize: kIsWeb ? 18 : 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInstructionItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            margin: const EdgeInsets.only(top: 8),
+            decoration: BoxDecoration(
+              color: Colors.blue[600],
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.notoSansJp(
+                fontSize: kIsWeb ? 14 : 16,
+                height: 1.5,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -41,7 +300,80 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
   int moveCount = 0;
   bool isLoading = false; // API通信中のローディング状態
 
+  // 音声プレイヤー
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioPlayer _bgmPlayer = AudioPlayer(); // BGM用の追加プレイヤー
+
+  // 音声を再生するメソッド
+  Future<void> _playMoveSound() async {
+    try {
+      debugPrint('音声ファイルの再生を試行中: assets/sounds/piece_move.mp3');
+
+      // 音量を最大に設定
+      await _audioPlayer.setVolume(1.0);
+
+      // 音声ファイルを再生
+      await _audioPlayer.play(AssetSource('sounds/piece_move.mp3'));
+      debugPrint('✅ チェスの駒配置音を正常に再生しました（音量: 最大）');
+    } catch (e) {
+      // 音声再生に失敗した場合はデバッグ出力
+      debugPrint('❌ 音声再生エラー: $e');
+      debugPrint('   ファイルパス確認: assets/sounds/piece_move.mp3');
+      debugPrint('   代替音: チェスの駒配置♪');
+    }
+  }
+
+  // 勝利BGMを再生するメソッド
+  Future<void> _playVictoryBGM() async {
+    try {
+      debugPrint('🎉 勝利BGMの再生を開始します');
+
+      // BGMプレイヤーの音量を設定
+      await _bgmPlayer.setVolume(0.8);
+
+      // 勝利BGMを再生
+      await _bgmPlayer.play(AssetSource('sounds/victory.mp3'));
+      debugPrint('✅ 勝利BGMを正常に再生しました');
+    } catch (e) {
+      debugPrint('❌ 勝利BGM再生エラー: $e');
+      debugPrint('   ファイルパス確認: assets/sounds/victory.mp3');
+    }
+  }
+
+  // 敗北BGMを再生するメソッド
+  Future<void> _playDefeatBGM() async {
+    try {
+      debugPrint('😔 敗北BGMの再生を開始します');
+
+      // BGMプレイヤーの音量を設定
+      await _bgmPlayer.setVolume(0.8);
+
+      // 敗北BGMを再生
+      await _bgmPlayer.play(AssetSource('sounds/defeat.mp3'));
+      debugPrint('✅ 敗北BGMを正常に再生しました');
+    } catch (e) {
+      debugPrint('❌ 敗北BGM再生エラー: $e');
+      debugPrint('   ファイルパス確認: assets/sounds/defeat.mp3');
+    }
+  }
+
   // --- ゲームロジックのメソッド ---
+
+  @override
+  void initState() {
+    super.initState();
+    // オーディオプレイヤーの初期化
+    _audioPlayer.setReleaseMode(ReleaseMode.release);
+    // 音量を最大に設定
+    _audioPlayer.setVolume(1.0);
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    _bgmPlayer.dispose(); // BGMプレイヤーも解放
+    super.dispose();
+  }
 
   // ゲームをリセットする
   void _resetGame() {
@@ -59,6 +391,7 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
 
     // 1. ナイトがまだ置かれていない場合
     if (knightPosition == null) {
+      _playMoveSound(); // 音を再生
       setState(() {
         moveCount = 1;
         knightPosition = [x, y];
@@ -69,6 +402,7 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
 
     // 2. ナイトが既に置かれている場合
     if (_isMoveValid(x, y)) {
+      _playMoveSound(); // 音を再生
       setState(() {
         moveCount++;
         knightPosition = [x, y];
@@ -77,7 +411,11 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
 
       // 64マス埋まったらクリア
       if (moveCount == boardSize * boardSize) {
-        _showGameResultDialog("ゲームクリア！", "おめでとうございます！全てのマスを巡りました。");
+        _playVictoryBGM(); // 勝利BGMを再生
+        _showGameResultDialog(
+          "🎉 ゲームクリア！",
+          "おめでとうございます！全てのマスを巡りました。\n\n量子アニーリング技術を使ったナイトツアーパズルを完全制覇です！",
+        );
       }
     }
   }
@@ -150,18 +488,12 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
     }
   }
 
-  // ゲームオーバー判定APIを呼び出す
+  // 量子アニーリング判定APIを呼び出す
   Future<void> _checkGameOver() async {
     if (knightPosition == null) {
       _showInfoSnackBar("ナイトを配置してからチェックしてください。");
       return;
     }
-
-    // 処理時間の警告を表示
-    _showGameResultDialog(
-      "処理開始",
-      "ナイト・ツアーの解析を開始します。\n\n複雑な盤面の場合、数分かかる場合があります。\nしばらくお待ちください...",
-    );
 
     setState(() {
       isLoading = true;
@@ -203,24 +535,31 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
         final responseBody = jsonDecode(response.body);
         final status = responseBody['status'];
         if (status == 'solvable') {
-          _showGameResultDialog("チェック結果", "まだ続行可能です！頑張ってください。");
+          _showGameResultDialog(
+            "量子アニーリング結果",
+            "量子コンピューターの計算により、まだ続行可能であることが判明しました！頑張ってください。",
+          );
         } else {
-          _showGameResultDialog("チェック結果", "ゲームオーバーです。これ以上進める手はありません。");
+          _playDefeatBGM(); // 敗北BGMを再生
+          _showGameResultDialog(
+            "😔 量子アニーリング結果",
+            "量子アニーリングの結果、これ以上進める手はありません。\n\nゲームオーバーです。リセットして再挑戦してください！",
+          );
         }
       } else {
         // サーバーからのエラーレスポンス
-        debugPrint('APIエラー詳細: ${response.body}');
+        debugPrint('量子アニーリングAPIエラー詳細: ${response.body}');
         _showGameResultDialog(
-          "APIエラー",
-          "サーバーからエラーが返されました (コード: ${response.statusCode})\n詳細: ${response.body}",
+          "量子アニーリングエラー",
+          "量子コンピューターからエラーが返されました (コード: ${response.statusCode})\n詳細: ${response.body}",
         );
       }
     } catch (e) {
       // タイムアウトやネットワークエラー
-      debugPrint('API通信エラー: $e');
+      debugPrint('量子アニーリング通信エラー: $e');
       _showGameResultDialog(
-        "通信エラー",
-        "APIに接続できませんでした。\n\n接続先: $apiUrl\n\nプラットフォーム: ${Platform.operatingSystem}\n\nエラー詳細: $e",
+        "量子通信エラー",
+        "量子コンピューターに接続できませんでした。\n\n接続先: $apiUrl\n\nプラットフォーム: ${Platform.operatingSystem}\n\nエラー詳細: $e",
       );
     } finally {
       setState(() {
@@ -302,9 +641,25 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ナイトツアーパズル'),
+        title: Text(
+          'ナイトツアーパズル',
+          style: GoogleFonts.notoSansJp(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const TitleScreen()),
+                (route) => false,
+              );
+            },
+            tooltip: 'タイトル画面へ',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         // ★ 追加
@@ -315,8 +670,8 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
               // ゲーム情報
               Text(
                 '手数: $moveCount / ${boardSize * boardSize}',
-                style: const TextStyle(
-                  fontSize: 24,
+                style: GoogleFonts.notoSansJp(
+                  fontSize: kIsWeb ? 20 : 24, // Webでは少し小さく
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -324,10 +679,15 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
 
               // チェス盤
               ConstrainedBox(
-                // ★ 追加
                 constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.9,
-                  maxHeight: MediaQuery.of(context).size.width * 0.9,
+                  maxWidth: kIsWeb
+                      ? MediaQuery.of(context).size.height *
+                            0.6 // Webでは画面高さの60%
+                      : MediaQuery.of(context).size.width * 0.9,
+                  maxHeight: kIsWeb
+                      ? MediaQuery.of(context).size.height *
+                            0.6 // Webでは画面高さの60%
+                      : MediaQuery.of(context).size.width * 0.9,
                 ),
                 child: AspectRatio(
                   aspectRatio: 1.0,
@@ -396,10 +756,14 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
                                       ),
                                     if (isKnightHere)
                                       Center(
-                                        child: Icon(
-                                          Icons.person,
-                                          size: 30,
-                                          color: Colors.white,
+                                        child: Container(
+                                          width: kIsWeb ? 40 : 50,
+                                          height: kIsWeb ? 40 : 50,
+                                          child: Image.asset(
+                                            'assets/images/knight.png',
+                                            color: Colors.white,
+                                            fit: BoxFit.contain,
+                                          ),
                                         ),
                                       ),
                                   ],
@@ -417,17 +781,36 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
 
               // 以下そのまま
               if (knightPosition == null)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
                     'チェス盤の任意のマスをタップしてナイトを配置してください',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    style: GoogleFonts.notoSansJp(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
               const SizedBox(height: 20),
               if (isLoading)
-                const CircularProgressIndicator()
+                Column(
+                  children: [
+                    const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '量子アニーリングによる最適化計算中...\nしばらくお待ちください',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.notoSansJp(
+                        fontSize: 16,
+                        color: Colors.purple[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                )
               else
                 Column(
                   children: [
@@ -437,7 +820,7 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
                         ElevatedButton.icon(
                           onPressed: _resetGame,
                           icon: const Icon(Icons.refresh),
-                          label: const Text('リセット'),
+                          label: Text('リセット', style: GoogleFonts.notoSansJp()),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,
                             foregroundColor: Colors.white,
@@ -446,7 +829,7 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
                         ElevatedButton.icon(
                           onPressed: _testApiConnection,
                           icon: const Icon(Icons.wifi_tethering),
-                          label: const Text('接続テスト'),
+                          label: Text('接続テスト', style: GoogleFonts.notoSansJp()),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
@@ -465,10 +848,13 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
                               height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Icon(Icons.api),
-                      label: Text(isLoading ? 'チェック中...' : 'ゲームオーバーチェック'),
+                          : const Icon(Icons.psychology),
+                      label: Text(
+                        isLoading ? '量子コンピューター計算中...' : '量子アニーリングチェック',
+                        style: GoogleFonts.notoSansJp(),
+                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: Colors.purple,
                         foregroundColor: Colors.white,
                       ),
                     ),
