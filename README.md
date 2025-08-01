@@ -8,7 +8,7 @@
 
 ## デモ動画
 
-https://github.com/user-attachments/assets/0eb9058f-afa3-452a-91f6-c52b1d782f69
+https://github.com/user-attachments/assets/f8c8a2e8-cf68-4b66-8cc6-637ae211ed5a
 
 ## 機能
 
@@ -93,5 +93,3 @@ knight-tour-app/
   "amplify_token": "AE/your-token-here"
 }
 ```
-
-
