@@ -16,27 +16,11 @@
 
 ## システム要件
 
-### Windows EXE版
-- Windows 10以降（64bit）
-- RAM 512MB以上
-- ディスク容量 100MB以上
-
-### 開発環境版
 - Flutter SDK 3.24.3以降
 - Python 3.8以降  
 - モダンブラウザ
 
 ## インストールと実行
-
-### オプション1: Windows実行ファイル（推奨）
-
-1. [リリースページ](https://github.com/yashi846/knight-tour-app/releases)から`KnightTourPuzzle.exe`をダウンロード
-2. 実行ファイルをダブルクリックして起動
-3. ゲームがデフォルトのWebブラウザで自動的に開きます
-
-**注意**: Windows Defenderが未署名の実行ファイルに対してセキュリティ警告を表示する場合があります。「詳細情報」をクリックしてから「実行」を選択してください。
-
-### オプション2: 開発環境
 
 #### 前提条件
 ```bash
@@ -58,7 +42,7 @@ python app.py
 # 新しいターミナルでFlutterアプリケーションをセットアップ
 cd ..
 flutter pub get
-flutter run -d windows  # または -d chrome
+flutter run
 ```
 
 ## 使用方法
