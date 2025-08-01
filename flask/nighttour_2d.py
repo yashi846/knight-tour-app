@@ -9,7 +9,7 @@ Original file is located at
 
 import numpy as np
 import math
-!pip install amplify
+# pip install amplify
 from amplify import VariableGenerator, equal_to, sum_poly, FixstarsClient, solve
 from datetime import timedelta
 
@@ -52,7 +52,7 @@ for i in range(sqrt_NUM_BOARD):
       constraints_neo = constraints + equal_to(q[0, i, j], 1)
       model = constraints_neo + objective
       client = FixstarsClient()
-      client.token = "AE/TZldOOkEItyFW5PFYBhSoDUEcx6KL0Xn"  # トークンを入力
+      # client.token = "YOUR_AMPLIFY_TOKEN_HERE"  # トークンを設定してください
       client.parameters.timeout = timedelta(milliseconds=30 * 1000)  # タイムアウトを30秒（8×8のとき)
       # client.parameters.timeout = timedelta(milliseconds=100 * 1000)  # タイムアウトを100秒（10×10のとき)　100秒では約1手くらい不正な移動がある
       result = solve(model, client)

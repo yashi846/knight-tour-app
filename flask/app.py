@@ -23,7 +23,7 @@ class KnightTourSolver:
         self.NUM_BOARD = board_size * board_size
         self.d_moves = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]]
         
-    def solve_knight_tour(self, visited_squares):
+    def solve_knight_tour(self, visited_squares, amplify_token=None):
         """
         ナイト・ツアーの解決可能性を判定する
         """
@@ -64,7 +64,14 @@ class KnightTourSolver:
             # モデル作成と求解
             model = constraints + objective
             client = FixstarsClient()
-            client.token = "AE/TZldOOkEItyFW5PFYBhSoDUEcx6KL0Xn"
+            
+            # Amplifyトークンの設定
+            if amplify_token:
+                client.token = amplify_token
+                logger.info("クライアントから提供されたAmplifyトークンを使用")
+            else:
+                logger.error("Amplifyトークンが提供されていません")
+                raise ValueError("Amplifyトークンが必要です")
             
             timeout_seconds = 100  # 100s
                 
@@ -113,12 +120,12 @@ class KnightTourSolver:
             logger.error(f"ナイト・ツアー解決中にエラーが発生: {str(e)}")
             return False
 
-def run_solver_async(board_size, visited_squares):
+def run_solver_async(board_size, visited_squares, amplify_token=None):
     """
     非同期でナイト・ツアーソルバーを実行
     """
     solver = KnightTourSolver(board_size)
-    return solver.solve_knight_tour(visited_squares)
+    return solver.solve_knight_tour(visited_squares, amplify_token)
 
 @app.route('/check_knight_tour', methods=['POST'])
 def check_knight_tour():
@@ -140,6 +147,14 @@ def check_knight_tour():
         board_size = data['board_size']
         current_position = data['current_position']
         visited_squares = data['visited_squares']
+        amplify_token = data.get('amplify_token')  # オプショナルフィールド
+        
+        # Amplifyトークンのログ出力（セキュリティ上、一部のみ表示）
+        if amplify_token:
+            token_preview = amplify_token[:10] + "..." if len(amplify_token) > 10 else amplify_token
+            logger.info(f"Amplifyトークンを受信: {token_preview}")
+        else:
+            logger.warning("Amplifyトークンが提供されていません。量子アニーリングの実行にはトークンが必要です。")
         
         # データの妥当性チェック
         if not isinstance(board_size, int) or board_size < 5 or board_size > 10:
@@ -187,7 +202,7 @@ def check_knight_tour():
         
         # 非同期でソルバーを実行
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(run_solver_async, board_size, visited_squares)
+            future = executor.submit(run_solver_async, board_size, visited_squares, amplify_token)
             try:
                 # 量子アニーリングのタイムアウト + バッファ時間を設定
                 executor_timeout = 100 + 30  # 量子アニーリング100秒 + バッファ30秒

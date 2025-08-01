@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const KnightTourApp());
@@ -300,6 +301,11 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
   int moveCount = 0;
   bool isLoading = false; // API通信中のローディング状態
 
+  // Amplifyトークン管理
+  String? amplifyToken; // Amplifyトークンを保存
+  bool get isTokenConfigured =>
+      amplifyToken != null && amplifyToken!.isNotEmpty;
+
   // 音声プレイヤー
   final AudioPlayer _audioPlayer = AudioPlayer();
   final AudioPlayer _bgmPlayer = AudioPlayer(); // BGM用の追加プレイヤー
@@ -366,6 +372,47 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
     _audioPlayer.setReleaseMode(ReleaseMode.release);
     // 音量を最大に設定
     _audioPlayer.setVolume(1.0);
+
+    // 保存されたトークンを読み込み
+    _loadSavedToken();
+  }
+
+  // 保存されたトークンを読み込む
+  Future<void> _loadSavedToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedToken = prefs.getString('amplify_token');
+      if (savedToken != null && savedToken.isNotEmpty) {
+        setState(() {
+          amplifyToken = savedToken;
+        });
+        debugPrint('保存されたAmplifyトークンを読み込みました');
+      }
+    } catch (e) {
+      debugPrint('トークン読み込みエラー: $e');
+    }
+  }
+
+  // トークンを保存する
+  Future<void> _saveToken(String token) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('amplify_token', token);
+      debugPrint('Amplifyトークンを保存しました');
+    } catch (e) {
+      debugPrint('トークン保存エラー: $e');
+    }
+  }
+
+  // トークンを削除する
+  Future<void> _removeToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('amplify_token');
+      debugPrint('Amplifyトークンを削除しました');
+    } catch (e) {
+      debugPrint('トークン削除エラー: $e');
+    }
   }
 
   @override
@@ -495,6 +542,15 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
       return;
     }
 
+    // Amplifyトークンが設定されていない場合はダイアログを表示
+    if (!isTokenConfigured) {
+      _showGameResultDialog(
+        "トークンが必要です",
+        "量子アニーリングチェックを実行するには、AmplifyのAPIトークンが必要です。\n\nトークン設定ボタンから設定してください。",
+      );
+      return;
+    }
+
     setState(() {
       isLoading = true;
     });
@@ -502,7 +558,7 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
     // プラットフォームに応じたAPIエンドポイント
     final String apiUrl = '$apiBaseUrl/check_knight_tour';
 
-    // APIに送信するデータを作成
+    // APIに送信するデータを作成（Amplifyトークンを含める）
     final requestBody = jsonEncode({
       'board_size': boardSize,
       'current_position': {'x': knightPosition![0], 'y': knightPosition![1]},
@@ -510,6 +566,7 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
         final parts = key.split(',');
         return {'x': int.parse(parts[0]), 'y': int.parse(parts[1])};
       }).toList(),
+      'amplify_token': amplifyToken, // Amplifyトークンを追加
     });
 
     try {
@@ -607,6 +664,158 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
         isLoading = false;
       });
     }
+  }
+
+  // Amplifyトークン設定ダイアログを表示
+  Future<void> _showTokenConfigDialog() async {
+    final TextEditingController tokenController = TextEditingController();
+
+    // 既存のトークンがある場合は表示
+    if (amplifyToken != null) {
+      tokenController.text = amplifyToken!;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.key, color: Colors.purple[600]),
+            const SizedBox(width: 8),
+            const Text('Amplifyトークン設定'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Fixstars AmplifyのAPIトークンを入力してください。',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                border: Border.all(color: Colors.blue.shade200),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: Colors.blue[700],
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'トークンの取得方法',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '1. Amplify クラウドにログイン\n'
+                    '2. マイページにアクセス\n'
+                    '3. APIトークンをコピー',
+                    style: TextStyle(fontSize: 13, height: 1.4),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: tokenController,
+              decoration: InputDecoration(
+                labelText: 'APIトークン',
+                hintText: 'AE/...',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.vpn_key),
+                helperText: '例: AE/xxxxxxxxxxxxxxxx',
+                helperStyle: TextStyle(color: Colors.grey[600]),
+              ),
+              obscureText: true,
+              maxLines: 1,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                border: Border.all(color: Colors.green.shade200),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle_outline,
+                    size: 16,
+                    color: Colors.green[700],
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'トークンはアプリ内に保存され、検証は行いません',
+                      style: TextStyle(fontSize: 12, color: Colors.green[700]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('キャンセル'),
+          ),
+          if (amplifyToken != null)
+            TextButton(
+              onPressed: () async {
+                await _removeToken();
+                setState(() {
+                  amplifyToken = null;
+                });
+                Navigator.of(context).pop();
+                _showInfoSnackBar('トークンが削除されました');
+              },
+              child: Text('削除', style: TextStyle(color: Colors.red[600])),
+            ),
+          ElevatedButton(
+            onPressed: () async {
+              final token = tokenController.text.trim();
+              if (token.isEmpty) {
+                _showInfoSnackBar('トークンを入力してください');
+                return;
+              }
+
+              await _saveToken(token);
+              setState(() {
+                amplifyToken = token;
+              });
+
+              Navigator.of(context).pop();
+              _showInfoSnackBar('トークンが保存されました');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple[600],
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
   }
 
   // --- UI表示用のヘルパーメソッド ---
@@ -838,26 +1047,134 @@ class _ChessBoardScreenState extends State<ChessBoardScreen> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    ElevatedButton.icon(
-                      onPressed: isLoading
-                          ? null
-                          : _checkGameOver, // ローディング中は無効化
-                      icon: isLoading
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.psychology),
-                      label: Text(
-                        isLoading ? '量子コンピューター計算中...' : '量子アニーリングチェック',
-                        style: GoogleFonts.notoSansJp(),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple,
-                        foregroundColor: Colors.white,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _showTokenConfigDialog,
+                          icon: Icon(
+                            isTokenConfigured ? Icons.key : Icons.key_off,
+                            size: 20,
+                          ),
+                          label: Text(
+                            'トークン設定',
+                            style: GoogleFonts.notoSansJp(fontSize: 14),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isTokenConfigured
+                                ? Colors.blue
+                                : Colors.grey,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(140, 36),
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: (isLoading || !isTokenConfigured)
+                              ? null
+                              : _checkGameOver,
+                          icon: isLoading
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : Icon(
+                                  isTokenConfigured
+                                      ? Icons.psychology
+                                      : Icons.lock,
+                                  size: 20,
+                                ),
+                          label: Text(
+                            isLoading
+                                ? '量子計算中...'
+                                : isTokenConfigured
+                                ? '量子チェック'
+                                : 'トークン必要',
+                            style: GoogleFonts.notoSansJp(fontSize: 14),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isTokenConfigured
+                                ? Colors.purple
+                                : Colors.grey,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(140, 36),
+                          ),
+                        ),
+                      ],
                     ),
+                    if (isTokenConfigured)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 6.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            border: Border.all(color: Colors.green.shade300),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.check_circle,
+                                size: 16,
+                                color: Colors.green[600],
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Amplifyトークンが設定済み',
+                                style: GoogleFonts.notoSansJp(
+                                  fontSize: 12,
+                                  color: Colors.green[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 6.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade50,
+                            border: Border.all(color: Colors.orange.shade300),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.warning_amber,
+                                size: 16,
+                                color: Colors.orange[600],
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'トークンを設定してください',
+                                style: GoogleFonts.notoSansJp(
+                                  fontSize: 12,
+                                  color: Colors.orange[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                   ],
                 ),
             ],
