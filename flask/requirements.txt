@@ -1,5 +1,0 @@
-Flask>=2.3.2
-Flask-CORS>=4.0.0
-numpy>=1.26.0
-amplify>=0.12.0
-requests>=2.31.0
