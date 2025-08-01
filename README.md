@@ -6,6 +6,10 @@
 
 ナイトツアーは、チェス盤上のナイトを使った数学的問題です。ナイトはチェスのルール通りに移動し、すべてのマスを一度ずつ訪問する必要があります。
 
+## デモ動画
+
+https://github.com/user-attachments/assets/0eb9058f-afa3-452a-91f6-c52b1d782f69
+
 ## 機能
 
 - インタラクティブなチェス盤インターフェース
@@ -89,3 +93,5 @@ knight-tour-app/
   "amplify_token": "AE/your-token-here"
 }
 ```
+
+
