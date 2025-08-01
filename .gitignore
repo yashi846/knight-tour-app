@@ -43,3 +43,28 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Python related
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+
+# PyInstaller
+*.spec
+
+# Batch files and temporary scripts
+*.bat
+*.ps1
+
+# EXE files (keep only the final version)
+KnightTourPuzzle.exe
+KnightTourGame.exe
