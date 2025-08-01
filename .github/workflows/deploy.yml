@@ -3,8 +3,18 @@ name: Build and Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+
+# 権限を設定してGitHub Pagesにデプロイ可能にする
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時実行を制限
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
@@ -17,7 +27,8 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.0'
+        flutter-version: '3.24.3'
+        channel: 'stable'
         
     - name: Install dependencies
       run: flutter pub get
@@ -25,8 +36,17 @@ jobs:
     - name: Build for web
       run: flutter build web --base-href /knight-tour-app/
       
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Add .nojekyll file
+      run: touch build/web/.nojekyll
+      
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build/web
+        path: ./build/web
+        
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

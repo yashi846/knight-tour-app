@@ -4,6 +4,8 @@
 
 🌐 **[いますぐブラウザでプレイ！](https://yashi846.github.io/knight-tour-app/)** 🎮
 
+*※ 上記は開発者のデモサイトです。このリポジトリをフォークした場合は、あなたのGitHubユーザー名に置き換えてください。*
+
 ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
@@ -25,6 +27,8 @@
 **インストール不要で即プレイ！**
 
 🌐 **[ナイトツアーパズルをプレイ](https://yashi846.github.io/knight-tour-app/)**
+
+*※ このリポジトリをフォーク・デプロイした場合は `https://[あなたのユーザー名].github.io/knight-tour-app/` でアクセスできます*
 
 - ✅ ブラウザだけでプレイ可能
 - ✅ Flutter・Python不要
@@ -150,12 +154,52 @@ KnightTourPuzzle.exe
 
 ## 🌐 Web版について
 
-### 自動デプロイメント
-このプロジェクトは**GitHub Actions**を使用して自動的にWeb版がデプロイされます：
+### 🚀 GitHub Pagesでのデプロイ手順
+
+このプロジェクトを自分のGitHubアカウントでWeb版として公開する手順：
+
+#### 1. リポジトリの準備
+```bash
+# リポジトリをクローンまたはフォーク
+git clone https://github.com/yashi846/knight-tour-app.git
+cd knight-tour-app
+
+# またはあなた自身のリポジトリを作成した場合
+git init
+git add .
+git commit -m "Initial commit: Knight Tour Puzzle"
+git branch -M main
+git remote add origin https://github.com/[あなたのユーザー名]/knight-tour-app.git
+git push -u origin main
+```
+
+#### 2. GitHub Pages設定（重要！）
+1. **GitHubリポジトリページ**を開く
+2. **Settings**タブをクリック
+3. 左サイドバーの**Pages**をクリック
+4. **Source**で「**GitHub Actions**」を選択
+   - ⚠️ 「Deploy from a branch」ではなく「**GitHub Actions**」を選択してください
+5. 保存すると自動的にビルドが開始されます
+
+#### 3. 自動デプロイメント
+GitHub Actionsが以下を自動実行します：
 
 1. **コードプッシュ** → 自動ビルド開始
 2. **Flutter Webビルド** → 最適化されたWeb版を生成  
-3. **GitHub Pagesデプロイ** → https://yashi846.github.io/knight-tour-app/ で公開
+3. **GitHub Pagesデプロイ** → `https://[あなたのユーザー名].github.io/knight-tour-app/` で公開
+
+### 📋 トラブルシューティング（GitHub Pages）
+
+#### ❌ Web版が表示されない場合
+1. **Actions**タブでビルドエラーがないか確認
+2. **Settings > Pages**で「GitHub Actions」が選択されているか確認
+3. リポジトリが**Public**になっているか確認
+4. **base-href**が正しく設定されているか確認（`/リポジトリ名/`）
+
+#### 🔧 よくある解決方法
+- **ビルドエラー**: `flutter pub get`で依存関係を更新
+- **404エラー**: base-hrefを`/knight-tour-app/`に設定
+- **権限エラー**: リポジトリをPublicに変更
 
 ### Web版の特徴
 - ✅ **インストール不要**: ブラウザだけでプレイ
@@ -225,6 +269,7 @@ knight-tour-app/
 - **[ブラウザでプレイ](https://yashi846.github.io/knight-tour-app/)**
 - インストール不要、即プレイ
 - 全デバイス対応
+- *※ あなたのリポジトリでは `https://[ユーザー名].github.io/knight-tour-app/`*
 
 ### 2. シンプル実行
 - `python simple_launcher.py`
